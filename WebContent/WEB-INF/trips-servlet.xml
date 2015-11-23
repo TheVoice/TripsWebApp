@@ -19,4 +19,7 @@
 		<property name="suffix" value=".jsp" />
 	</bean>
  
+ 	<bean id="driver"
+ 		class="org.postgresql.Driver">
+ 	</bean>
 </beans>

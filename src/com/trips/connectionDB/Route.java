@@ -5,7 +5,12 @@ import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+
+import com.trips.model.Line;
+import com.trips.model.RouteResults;
 
 class Route {
     public String id;
@@ -18,6 +23,57 @@ class Route {
     
     Route(){
     	ParsedLinestring = new LinkedList<Point>();
+    }
+    
+    public void generateIntoResults(RouteResults results){
+    	Double sumLon = 0.0;
+        Double sumLat = 0.0;
+        Integer summed = 0;
+        
+        boolean first = true;
+        Point prev = new Point();
+        for(Point e: ParsedLinestring) {
+        	if(first){
+        		prev = e;
+        		first = false;
+        	}
+        	else{
+	            Double from_lat = prev.x;  // 19
+	            Double from_lon = prev.y;
+	            Double to_lat = e.x;  // 20
+	            Double to_lon = e.y;
+	            sumLon += from_lon;
+	            sumLon += to_lon;
+	            sumLat += from_lat;
+	            sumLat += to_lat;
+	            summed += 2;
+	            prev = e;
+        	}
+        }
+        
+        results.setLatitudeCenter(sumLat / summed);
+        results.setLongitudeCenter(sumLon / summed);
+        
+        first = true;
+        List<Line> lines = new LinkedList<Line>();
+        for(Point e: ParsedLinestring) {
+        	if(first){
+        		prev = e;
+        		first = false;
+        	}
+        	else{
+        		Line l = new Line();
+        		l.setFrom_lat(prev.x);
+        		l.setFrom_lon(prev.y);
+        		l.setTo_lat(e.x);
+        		l.setTo_lon(e.y);
+        		lines.add(l);
+        		
+        		prev = e;
+        	}
+            
+        }
+        results.setLines(lines);
     }
    
 	public void generateLeafletHtmlView(String filename) {

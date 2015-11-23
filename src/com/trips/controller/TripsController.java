@@ -1,7 +1,11 @@
 package com.trips.controller;
  
+import java.util.List;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,10 +13,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.trips.connectionDB.TripsConnector;
+import com.trips.model.Line;
+import com.trips.model.RouteResults;
 import com.trips.model.TripDetails;
  
 @Controller
 public class TripsController {
+	@Autowired
+    ServletContext context; 
  
 	@RequestMapping(value = "/",method = RequestMethod.GET)
 	public ModelAndView viewForm(){
@@ -21,16 +29,17 @@ public class TripsController {
 	
 	@RequestMapping(value = "/results",method = RequestMethod.POST)
 	public ModelAndView searchDatabase(@ModelAttribute("TripsWeb") TripDetails details,Map<String,Object> model) {
-		/*
-		System.out.println(details.getStartX());
-		System.out.println(details.getStartY());
-		System.out.println(details.getMinLength());
-		System.out.println(details.getMaxLength());
-		*/
+		
+		
 		
 		TripsConnector connector = new TripsConnector(details);
-		connector.connectAndSearch();
-		String message =  details.getStartRoad();
-		return new ModelAndView("results", "message", message);
+		RouteResults results = connector.connectAndSearch();
+		List<Line> list = results.getLines();
+		String json ="";
+		//ObjectMapper mapper = new ObjectMapper();
+		//try{
+			//json
+		//}
+		return new ModelAndView("results", "resultObj", results);
 	}
 }

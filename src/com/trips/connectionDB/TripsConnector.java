@@ -8,6 +8,12 @@ import java.sql.Statement;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.servlet.ServletContext;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import com.trips.model.RouteResults;
 import com.trips.model.TripDetails;
 
 public class TripsConnector {
@@ -18,7 +24,7 @@ public class TripsConnector {
 		this.details = details;
 	}
 	
-	public void connectAndSearch(){
+	public RouteResults connectAndSearch(){
 		Connection conn = null;
 	    listOfRoutes = new LinkedList<Route>();
 
@@ -34,7 +40,8 @@ public class TripsConnector {
 	    // parse Linestring into Route (LinkedList of points)
 	    parseLineString();
 	    
-	    generateHTMLs();
+	    RouteResults res = generateResults();
+	    return res;
 	}
 	
 	private Connection connectToDatabase() {
@@ -44,10 +51,12 @@ public class TripsConnector {
 			String url = "jdbc:postgresql://localhost:5432/ToursRoutesDB";
 			conn = DriverManager.getConnection(url,"postgres", "admin");
 		} 
+		
 		catch (ClassNotFoundException e){
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
 		catch (SQLException e){
 			e.printStackTrace();
 			System.exit(2);
@@ -99,13 +108,17 @@ public class TripsConnector {
 	    }
 	}
 	
-	private void generateHTMLs() {
+	private RouteResults generateResults() {
 		Iterator<Route> it = listOfRoutes.iterator();
-		int i = 0;
+		RouteResults results = new RouteResults();
+		Route route = listOfRoutes.getFirst();
+		route.generateIntoResults(results);
+		/*
 	    while (it.hasNext()){
 	    	Route route = it.next();
-	    	i++;
-	    	route.generateLeafletHtmlView("DatabaseRouteG" + i +".html");
+	    	route.generateIntoResults(results);
 		}
+		*/
+	    return results;
 	}
 }
