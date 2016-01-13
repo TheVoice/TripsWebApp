@@ -5,26 +5,34 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import javax.servlet.ServletContext;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.trips.model.Line;
 import com.trips.model.RouteResults;
+import com.trips.model.StartDetails;
 import com.trips.model.TripDetails;
 
 public class TripsConnector {
 	LinkedList<Route> listOfRoutes;
 	TripDetails details;
+	StartDetails startDet;
 
-	public TripsConnector(TripDetails details){
+	public TripsConnector(TripDetails details,StartDetails startDet){
 		this.details = details;
+		this.startDet = startDet;
 	}
 	
-	public RouteResults connectAndSearch(){
+	public List<RouteResults> connectAndSearch(){
 		Connection conn = null;
 	    listOfRoutes = new LinkedList<Route>();
 
@@ -40,7 +48,7 @@ public class TripsConnector {
 	    // parse Linestring into Route (LinkedList of points)
 	    parseLineString();
 	    
-	    RouteResults res = generateResults();
+	    List<RouteResults> res = generateResults();
 	    return res;
 	}
 	
@@ -67,8 +75,16 @@ public class TripsConnector {
 	private void getRoutesFromDatabase(Connection conn){
 	    try {
 		    Statement st = conn.createStatement();
-		    ResultSet rs = st.executeQuery("SELECT id, type, length, quality, ST_AsText(range) AS range, ST_AsText(route) AS route from routes "
-		    		  							+ "where ST_Distance(ST_GeomFromText('POINT("+details.getStartX()+" "+details.getStartY()+")'), route) < 0.1 and length < "+details.getMaxLength()+" and length > "+details.getMinLength()+";");
+		    ResultSet rs;
+		    if(details.getStrategy().equals("byBike"))
+			    rs = st.executeQuery("SELECT id, type, length, quality, ST_AsText(range) AS range, ST_AsText(route) AS route from routes "
+			    		  							+ "where ST_Distance(ST_GeomFromText('POINT("+startDet.getLatitudeStart()+" "+startDet.getLongitudeStart()+")'), route) < 0.01 and length < "+details.getMaxLength()+" and length > "+details.getMinLength()+" and type ='Bicycle';");
+		    else if(details.getStrategy().equals("byFoot"))
+		    	rs = st.executeQuery("SELECT id, type, length, quality, ST_AsText(range) AS range, ST_AsText(route) AS route from routes "
+							+ "where ST_Distance(ST_GeomFromText('POINT("+startDet.getLatitudeStart()+" "+startDet.getLongitudeStart()+")'), route) < 0.01 and length < "+details.getMaxLength()+" and length > "+details.getMinLength()+" and type='Walk';");
+		    else
+		    	rs = st.executeQuery("SELECT id, type, length, quality, ST_AsText(range) AS range, ST_AsText(route) AS route from routes "
+							+ "where ST_Distance(ST_GeomFromText('POINT("+startDet.getLatitudeStart()+" "+startDet.getLongitudeStart()+")'), route) < 0.01 and length < "+details.getMaxLength()+" and length > "+details.getMinLength()+";");
 		    while ( rs.next() ){
 		    	Route route = new Route();
 		    	route.id        = rs.getString("id");
@@ -77,8 +93,19 @@ public class TripsConnector {
 		    	route.quality   = rs.getString("quality");
 		    	route.bounds 	= rs.getString("range");
 		    	route.route     = rs.getString("route");
+		    	//System.out.println(route.route);
+		    	Statement st2 = conn.createStatement();
+		    	ResultSet distanceSet = st2.executeQuery("SELECT ST_Distance("
+		    			+ "ST_GeomFromText('POINT("+startDet.getLatitudeStart()+" "+startDet.getLongitudeStart()+")'),"
+		    			+ "ST_GeomFromText('"+route.route+"')"
+		    			+ ");");
+		    	distanceSet.next();
+		    	route.distance = distanceSet.getString("st_distance");
+		    	distanceSet.close();
+		    	//System.out.println(route.distance);
 		    	listOfRoutes.add(route);
 		    }
+		    
 		    rs.close();
 		    st.close();
 	    }
@@ -108,17 +135,30 @@ public class TripsConnector {
 	    }
 	}
 	
-	private RouteResults generateResults() {
+	private List<RouteResults> generateResults(){
 		Iterator<Route> it = listOfRoutes.iterator();
-		RouteResults results = new RouteResults();
-		Route route = listOfRoutes.getFirst();
-		route.generateIntoResults(results);
-		/*
+		//System.out.println(listOfRoutes.size());
+		RouteResults results;
+		List<RouteResults> listResults = new ArrayList<RouteResults>();
+		Route route;
+		//route.generateIntoResults(results);
+		
 	    while (it.hasNext()){
-	    	Route route = it.next();
+	    	results = new RouteResults();
+	    	route = it.next();
 	    	route.generateIntoResults(results);
+	    	List<Line> list = results.getLines();
+	    	String json ="";
+			ObjectMapper mapper = new ObjectMapper();
+			try{
+				json = mapper.writeValueAsString(list);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			results.setJsonLines(json);
+	    	listResults.add(results);
 		}
-		*/
-	    return results;
+		
+	    return listResults;
 	}
 }

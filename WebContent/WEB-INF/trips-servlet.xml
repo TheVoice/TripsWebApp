@@ -8,8 +8,9 @@
         http://www.springframework.org/schema/mvc/spring-mvc.xsd
         http://www.springframework.org/schema/context 
         http://www.springframework.org/schema/context/spring-context.xsd">
- 
-	<context:component-scan base-package="com.trips" />
+ 	<mvc:annotation-driven/>
+ 	<mvc:resources location="/resources/" mapping="/resources/**"/>
+	<context:component-scan base-package="com.trips.controller" />
  
 	<bean id="viewResolver"
 		class="org.springframework.web.servlet.view.UrlBasedViewResolver">
@@ -18,7 +19,10 @@
 		<property name="prefix" value="/WEB-INF/jsp/" />
 		<property name="suffix" value=".jsp" />
 	</bean>
- 
+ 	<bean id="conversationalSessionAttributeStore" class="com.trips.support.TabSessionAttributeStore">
+ 		<property name="keepAliveConversations" value="10"/>
+ 	</bean>
+ 	<bean name="requestDataValueProcessor" class="com.trips.support.TabIdRequestProcessor"/>
  	<bean id="driver"
  		class="org.postgresql.Driver">
  	</bean>

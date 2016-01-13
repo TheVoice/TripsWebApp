@@ -1,44 +1,60 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-2"
+    pageEncoding="UTF-8"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <html>
 <head>
 	<title>Trips Search Main Page</title>
+	<style type="text/css">
+	body{
+		background-image:url('resources/antiquepaper_1920x1234.jpg');
+	}
+	</style>
+	<script>
+		function check_range(){
+			var oForm = this.form;
+			var oMin = oForm.elements["minSlider"];
+			console.log("test");
+		}
+	</script>
 </head>
-<body>
+<body onload="minRangeOut.value=minLength.value;maxRangeOut.value=maxLength.value">
 	<div style="text-align:center">
 		<h2>
-			Welcome to TripSearch<br> <br>
+			System wyszukiwania tras wycieczek TripSearch<br> <br>
 		</h2>
 	</div>	
-		
-	<form:form method="POST" action="results" oninput="minRangeOut.value=minLength.value;maxRangeOut.value=maxLength.value">
+	
+	<form:form method="POST" action="results" oninput="minRangeOut.value=minLength.value;maxRangeOut.value=maxLength.value" onload="minRangeOut.value=minLength.value;maxRangeOut.value=maxLength.value">	
+	
 		<div>
-			<table style="margin: 0 auto;">
-			<!--
+			<table style="margin: 0 auto;" border="1">
+			
 				<tr>
-		 			<td><form:label path="startRoad">Go for a trip from:</form:label></td>
+		 			<td><form:label path="startRoad">Chcę zacząć wycieczkę z:</form:label></td>
 		 			<td><form:input path="startRoad"/></td>
 		 		</tr>
-		 	-->
 		 		<tr>
-		 			<td><form:label path="startX">X coord.</form:label></td>
-		 			<td><form:input path="startX"/></td>
+		 			<td>Minimalna długość trasy:</td>
+		 			<td><form:input name="minSlider" path="minLength" type="range" min="0" max="60" value="10"/> <output id="minRangeOut" name="minRangeOut" for="minttime"></output>km</td>
 		 		</tr>
 		 		<tr>
-		 			<td><form:label path="startY">Y coord.</form:label></td>
-		 			<td><form:input path="startY"/></td>
+		 			<td>Maksymalna długość trasy:</td>
+		 			<td><form:input name="maxSlider" path="maxLength" type="range" min="0" max="60" value="10"/> <output id="maxRangeOut" name="maxRangeOut" for="maxttime"></output>km</td>
 		 		</tr>
 		 		<tr>
-		 			<td>Minimum length:</td>
-		 			<td><form:input path="minLength" type="range" min="10" max="120" value="10"/> <output name="minRangeOut" for="minttime">10</output></td>
+		 			<td>Typ wycieczki:</td>
+		 			<td><form:select path="strategy">
+		 				<form:option value="byFoot">Piesza</form:option>
+		 				<form:option value="byBike">Rowerowa</form:option>
+		 			</form:select></td>
 		 		</tr>
 		 		<tr>
-		 			<td>Maximum length:</td>
-		 			<td><form:input path="maxLength" type="range" min="10" max="120" value="10"/> <output name="maxRangeOut" for="maxttime">10</output></td>
+		 			<td colspan="2" align="center"><input type="submit" name="submit_button" value="Wyszukiwanie trasy"/></td>
 		 		</tr>
 	  		</table>
   		</div>
   		<div style="text-align:center">
-  			<input type="submit" value="Search"/>
+  			<p style="color:red">${command.message }</p>
   		</div>
 	</form:form>
 		

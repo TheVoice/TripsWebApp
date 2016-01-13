@@ -19,6 +19,7 @@ class Route {
     public String quality;
     public String bounds;
     public String route;
+    public String distance;
     public LinkedList<Point> ParsedLinestring;
     
     Route(){
@@ -74,6 +75,10 @@ class Route {
             
         }
         results.setLines(lines);
+        results.setDistance(Double.parseDouble(distance));
+        results.setQuality(Long.parseLong(quality));
+        Double len = Double.parseDouble(length);
+        results.setLength(len.intValue());
     }
    
 	public void generateLeafletHtmlView(String filename) {

@@ -2,12 +2,15 @@ package com.trips.model;
 
 import java.util.List;
 
-public class RouteResults {
+public class RouteResults implements Comparable<RouteResults>{
 
 	private Double latitudeCenter;
 	private Double longitudeCenter;
 	private List<Line> lines;
 	private String jsonLines;
+	private Double distance;
+	private Long quality;
+	private Integer length;
 	
 	public Double getLatitudeCenter() {
 		return latitudeCenter;
@@ -32,6 +35,29 @@ public class RouteResults {
 	}
 	public void setJsonLines(String jsonLines) {
 		this.jsonLines = jsonLines;
+	}
+	public Double getDistance() {
+		return distance;
+	}
+	public void setDistance(Double distance) {
+		this.distance = distance;
+	}
+	public Long getQuality() {
+		return quality;
+	}
+	public void setQuality(Long quality) {
+		this.quality = quality;
+	}
+	public Integer getLength() {
+		return length;
+	}
+	public void setLength(Integer length) {
+		this.length = length;
+	}
+	
+	@Override
+	public int compareTo(RouteResults o) {
+		return Long.compare(this.quality, o.quality);
 	}
 	
 	
